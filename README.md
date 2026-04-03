@@ -2,6 +2,10 @@
 
 Weave é uma interface leve para visualização de lineage (linhagem) construída com React e React Flow. Permite visualizar entidades (datasets, jobs, etc.) e suas dependências, navegar pela linhagem e usar um modo "foco" para inspecionar apenas os upstreams de um nó específico.
 
+## Demonstração
+
+- Live demo: https://juscostajr.github.io/weave/
+
 ## Objetivos
 
 - Fornecer uma visualização interativa de linhagem de dados (data lineage).
