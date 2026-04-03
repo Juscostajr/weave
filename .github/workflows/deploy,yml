@@ -1,0 +1,59 @@
+name: Deploy Lineage to GitHub Pages
+
+# Dispara o deploy quando houver push na main ou manualmente
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+    # Permissões necessárias para o GitHub Actions publicar a página
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Evita que deploys simultâneos atropelem uns aos outros
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Instalar dependências
+      run: npm ci
+
+    # PASSO MANTIDO: Injetar o mapeamento estático da topologia
+    - name: Injetar dependências estáticas
+      run: |
+        echo "Preparando o catálogo de linhagem..."
+        # Substitui o mock atual pela definição oficial antes do build
+        cp lineage-definitions/arquitetura_atual.json src/data/openlineage-mock.json
+
+    - name: Build do frontend com Vite
+      run: npm run build
+
+    - name: Configurar GitHub Pages
+      uses: actions/configure-pages@v4
+
+    - name: Fazer upload do artefato (Pasta dist)
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './dist'
+
+    - name: Deploy para o GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

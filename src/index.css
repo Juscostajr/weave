@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Garante que a aplicação ocupe 100% da tela, 
+  fundamental para o React Flow funcionar em fullscreen 
+*/
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}

@@ -1,0 +1,161 @@
+[
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-04-02T10:00:00.000Z",
+    "run": { "runId": "run-silver-cli-001" },
+    "job": {
+      "namespace": "fabric-workspace-data-eng",
+      "name": "PySpark_Ingestion_Clientes",
+      "facets": { "jobType": { "type": "NOTEBOOK" } }
+    },
+    "inputs": [
+      {
+        "namespace": "sql-server-onprem",
+        "name": "corporativo.clientes",
+        "facets": { "schema": { "fields": [{"name": "id_cliente", "type": "int"}, {"name": "nome", "type": "string"}] } }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.clientes_delta",
+        "facets": { "schema": { "fields": [{"name": "id_cliente", "type": "int"}, {"name": "nome", "type": "string"}, {"name": "data_ingestao", "type": "timestamp"}] } }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-04-02T10:05:00.000Z",
+    "run": { "runId": "run-silver-con-002" },
+    "job": {
+      "namespace": "fabric-workspace-data-eng",
+      "name": "Pipeline_Delta_Contas",
+      "facets": { "jobType": { "type": "DATA_PIPELINE" } }
+    },
+    "inputs": [
+      {
+        "namespace": "sql-server-onprem",
+        "name": "credito.contas_correntes",
+        "facets": { "schema": { "fields": [{"name": "id_conta", "type": "int"}, {"name": "id_cliente", "type": "int"}, {"name": "saldo", "type": "decimal"}] } }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.contas_delta",
+        "facets": { "schema": { "fields": [{"name": "id_conta", "type": "int"}, {"name": "id_cliente", "type": "int"}, {"name": "saldo", "type": "decimal"}] } }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-04-02T10:10:00.000Z",
+    "run": { "runId": "run-silver-agro-003" },
+    "job": {
+      "namespace": "fabric-workspace-data-eng",
+      "name": "Azure_Function_API_Agro",
+      "facets": { "jobType": { "type": "APP" } }
+    },
+    "inputs": [
+      {
+        "namespace": "api-externa",
+        "name": "cotacoes_commodities",
+        "facets": { "schema": { "fields": [{"name": "produto", "type": "string"}, {"name": "preco_saca", "type": "decimal"}] } }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.cotacoes_agro",
+        "facets": { "schema": { "fields": [{"name": "produto", "type": "string"}, {"name": "preco_saca", "type": "decimal"}] } }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-04-02T11:00:00.000Z",
+    "run": { "runId": "run-gold-risco-004" },
+    "job": {
+      "namespace": "fabric-workspace-data-eng",
+      "name": "PySpark_Gold_Risco_Credito",
+      "facets": { "jobType": { "type": "NOTEBOOK" } }
+    },
+    "inputs": [
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.clientes_delta",
+        "facets": {}
+      },
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.contas_delta",
+        "facets": {}
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "fabric-lakehouse-gold",
+        "name": "gold.analise_risco_credito",
+        "facets": { "schema": { "fields": [{"name": "id_cliente", "type": "int"}, {"name": "score_risco", "type": "string"}] } }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-04-02T11:15:00.000Z",
+    "run": { "runId": "run-gold-rent-005" },
+    "job": {
+      "namespace": "fabric-workspace-data-eng",
+      "name": "PySpark_Gold_Rentabilidade_Agro",
+      "facets": { "jobType": { "type": "NOTEBOOK" } }
+    },
+    "inputs": [
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.contas_delta",
+        "facets": {}
+      },
+      {
+        "namespace": "fabric-lakehouse-silver",
+        "name": "silver.cotacoes_agro",
+        "facets": {}
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "fabric-lakehouse-gold",
+        "name": "gold.rentabilidade_carteira_agro",
+        "facets": { "schema": { "fields": [{"name": "produto", "type": "string"}, {"name": "volume_operado", "type": "decimal"}] } }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-04-02T12:00:00.000Z",
+    "run": { "runId": "run-pbi-refresh-006" },
+    "job": {
+      "namespace": "powerbi-workspace-diretoria",
+      "name": "Refresh_Semantic_Model",
+      "facets": { "jobType": { "type": "DASHBOARD" } }
+    },
+    "inputs": [
+      {
+        "namespace": "fabric-lakehouse-gold",
+        "name": "gold.analise_risco_credito",
+        "facets": {}
+      },
+      {
+        "namespace": "fabric-lakehouse-gold",
+        "name": "gold.rentabilidade_carteira_agro",
+        "facets": {}
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "powerbi-workspace-diretoria",
+        "name": "Dashboard_Executivo_Agro",
+        "facets": { "schema": { "fields": [{"name": "Pagina", "type": "Report"}, {"name": "KPIs", "type": "Measures"}] } }
+      }
+    ]
+  }
+]
